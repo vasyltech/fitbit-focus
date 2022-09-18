@@ -1,0 +1,35 @@
+<svg viewport-fill="black" id="root">
+  <section width="90%" height="90%" y="10" x="5%">
+    <text id="date" class="current-date" x="50%" text-length="11" y="50%-70">--</text>
+    <text x="50%-120" y="50%+40" id="hour1" class="time-number theme-color">*</text>
+    <text x="50%-60" y="50%+40" id="hour2" class="time-number theme-color">*</text>
+    <text x="50%" y="50%+40" class="time-number theme-color">:</text>
+    <text x="50%+60" y="50%+40" id="minute1" class="time-number theme-color">*</text>
+    <text x="50%+120" y="50%+40" id="minute2" class="time-number theme-color">*</text>
+  </section>
+
+  <section class="stats" height="44">
+    <svg pointer-events="visible" id="metric-container">
+      <image class="metric-icon theme-color" id="activeZoneMinutes" href="images/active-zone.png" />
+      <image class="metric-icon theme-color" id="calories" href="images/calory.png" />
+      <image class="metric-icon theme-color" id="distance" href="images/distance.png" />
+      <image class="metric-icon theme-color" id="elevationGain" href="images/floor.png" />
+      <image class="metric-icon theme-color" id="steps" href="images/step.png" />
+      <image class="metric-icon theme-color" id="heart" href="images/heart.png" />
+      <text class="metric-number" id="metric-number">--</text>
+    </svg>
+
+    <circle cx="50%+3" cy="50%-6" r="2" fill="fb-light-gray" />
+
+    <svg pointer-events="visible" id="reminder-container">
+      <image class="reminder-icon theme-color" id="reminder-on" href="images/reminder.png" />
+      <image class="reminder-icon theme-color" id="reminder-off" href="images/reminder-off.png" />
+      <text id="reminders" font-family="System-Regular" text-length="3" font-size="24" fill="fb-light-gray" x="50%+64" y="24">0</text>
+    </svg>
+
+    <svg>
+      <line x1="0" y1="100%" x2="100%" y2="100%" id="progress-base" fill="fb-light-gray" stroke-width="6" />
+      <line x1="0" y1="100%" x2="0%" y2="100%" id="progress" class="theme-color" stroke-width="6" />
+    </svg>
+  </section>
+</svg>

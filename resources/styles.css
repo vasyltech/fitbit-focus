@@ -1,0 +1,50 @@
+.current-date {
+  font-family:"System-Light";
+  fill: "fb-light-gray";
+  font-size: 32;
+  text-length: 6;
+  font-weight: "light";
+  text-anchor: "middle";
+}
+
+.metric-icon {
+  x: 0;
+  y: 0;
+  width: 32;
+  height: 32;
+  display: "none";
+}
+
+.reminder-icon {
+  x:50%+30;
+  y: 0;
+  width: 32;
+  height: 32;
+}
+
+.time-number {
+  font-family: "System-Bold";
+  fill: "fb-blue";
+  font-size: 120;
+  font-weight: "bold";
+  text-anchor: "middle";
+}
+
+.stats {
+  x: 20%;
+  y: 50%+60;
+  width: 60%;
+}
+
+.metric-number {
+  font-family: System-Regular;
+  font-size: 24;
+  text-length: 5;
+  fill: fb-light-gray;
+  text-anchor: start;
+  y: 24;
+}
+
+.theme-color {
+  fill: fb-blue
+}
