@@ -9,13 +9,13 @@ function UpdateColor(color) {
 
 export default {
     setup: (context) => {
-        context.addEventListener("data_updated", function(event) {
+        context.addEventListener("setting_updated", function(event) {
             if (event.data.name === "color") {
                 UpdateColor(event.data.value)
             }
         });
 
         // Set the default color
-        UpdateColor(context.getItem("color", 5080831));
+        UpdateColor(context.getProp("color", 5080831));
     }
 }

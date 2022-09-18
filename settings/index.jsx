@@ -1,7 +1,6 @@
 const DefaultSettings = {
   duration: "30",
   color: JSON.stringify("5080831"),
-  fullday_reminder: "false",
   reminder_frequency: JSON.stringify({
     values: [
       {
@@ -68,24 +67,24 @@ registerSettingsPage((props) => {
       <Section
         title={
           <Text bold align="left">
-            Goal Settings
+            Focus Settings
           </Text>
         }
         description={
           <Text>
-            Inspiration comes from the audio record "The Strangest Secret" (1956) by Earl Nightingale, which teaches that periodically reminding yourself about the desired goal for some time (e. g. 30 days), will most definitely yield the desired outcome. Set your goal duration, how often you want a reminder, and choose a specific vibration pattern. Then be disciplined enough to spend a few quality seconds truly feeling as if your goal already came true when a reminder goes off.
+            Inspiration comes from the audio record "The Strangest Secret" (1956) by Earl Nightingale, which teaches that periodically reminding yourself about the desired goal for some time (e. g. 30 days), will yield a desired outcome. Set your goal duration, how often you want a reminder, and choose a unique vibration pattern. Then be disciplined enough to spend a few quality seconds truly feeling as if your goal already came true when a reminder goes off.
           </Text>
         }
       >
         <Slider
-          label={`Goal Duration: ${props.settings.duration} day${props.settings.duration === '1' ? '' : 's'}`}
+          label={`Focus Duration: ${props.settings.duration} day${props.settings.duration === '1' ? '' : 's'}`}
           settingsKey="duration"
           min="1"
           max="365"
         />
 
         <Select
-          label="Daily Reminder Frequency"
+          label="Reminder Frequency"
           settingsKey="reminder_frequency"
           options={[
             { name: "15 mins", value: "15" },
@@ -99,7 +98,7 @@ registerSettingsPage((props) => {
         />
 
         <Select
-          label="Daily Reminder Behavior"
+          label="Reminder Behavior"
           settingsKey="reminder_behavior"
           options={[
             { name: "Nudge 3 times", value: "trinity" },
@@ -108,11 +107,6 @@ registerSettingsPage((props) => {
             { name: "Bump", value: "bump" },
             { name: "Ping", value: "ping" }
           ]}
-        />
-
-        <Toggle
-          settingsKey="fullday_reminder"
-          label="Remind Me Even When I Asleep"
         />
       </Section>
 

@@ -25,41 +25,43 @@ function AdjustIconTextPosition(iconId, textId) {
      document.getElementById(textId).x = Math.floor(start) + 36;
 }
 
-function StartTracker(context) {
-    TrackerTimeout = setInterval(function() {
-        const metric = context.getItem("active_metric", GetDefaultMetric());
+function StartTrackingInterval(context) {
+    if (TrackerTimeout === undefined) {
+        TrackerTimeout = setInterval(function() {
+            const metric = context.getProp("active_metric", GetDefaultMetric());
 
-        // Number element
-        const number = document.getElementById("metric-number");
+            // Number element
+            const number = document.getElementById("metric-number");
 
-        if (metric === "heart") {
-            number.text = (HeartRateSensorInstance.heartRate || "--").toString();
-        } else if (metric === "activeZoneMinutes") {
-            if (today.local.activeZoneMinutes) {
-                number.text = today.local.activeZoneMinutes.total.toString();
+            if (metric === "heart") {
+                number.text = (HeartRateSensorInstance.heartRate || "--").toString();
+            } else if (metric === "activeZoneMinutes") {
+                if (today.local.activeZoneMinutes) {
+                    number.text = today.local.activeZoneMinutes.total.toString();
+                } else {
+                    number.text = "--";
+                }
+            } else if (metric === "elevationGain") {
+                if (today.local.elevationGain !== undefined) {
+                    number.text = (today.adjusted.elevationGain || "--").toString();
+                } else {
+                    number.text = (today.local.elevationGain || "--").toString();
+                }
             } else {
-                number.text = "--";
+                number.text = (today.local[metric] || "--").toString();
             }
-        } else if (metric === "elevationGain") {
-            if (today.local.elevationGain !== undefined) {
-                number.text = (today.adjusted.elevationGain || "--").toString();
-              } else {
-                number.text = (today.local.elevationGain || "--").toString();
-              }
-        } else {
-            number.text = (today.local[metric] || "--").toString();
-        }
 
-       AdjustIconTextPosition(metric, "metric-number");
-    }, 1000);
+        AdjustIconTextPosition(metric, "metric-number");
+        }, 1000);
+    }
 }
 
 /**
  *
  * @param {*} metric
  */
-function StopTracker(context) {
-    const metric = context.getItem("active_metric", GetDefaultMetric());
+function StopTrackingInterval(context) {
+    const metric = context.getProp("active_metric", GetDefaultMetric());
 
     if (metric === "heart") {
         HeartRateSensorInstance.stop();
@@ -68,8 +70,22 @@ function StopTracker(context) {
     TrackerTimeout = clearInterval(TrackerTimeout);
 }
 
+function InitializeTracker(context) {
+    if (display.on) {
+        const metric = context.getProp("active_metric", GetDefaultMetric());
+
+        if (metric === "heart") {
+            HeartRateSensorInstance.start();
+        } else {
+            HeartRateSensorInstance.stop();
+        }
+
+        StartTrackingInterval(context);
+    }
+}
+
 function RenderActiveMetric(context) {
-    const metric = context.getItem("active_metric", GetDefaultMetric());
+    const metric = context.getProp("active_metric", GetDefaultMetric());
 
     // Let's hide all the icons first
     document.getElementsByClassName("metric-icon").forEach((icon) => {
@@ -85,18 +101,9 @@ function RenderActiveMetric(context) {
     // Adjust the position
     AdjustIconTextPosition(metric, "metric-number");
 
-    // Start tracking numbers
-    if (display.on) {
-        if (metric === "heart") {
-            HeartRateSensorInstance.start();
-        } else {
-            HeartRateSensorInstance.stop();
-        }
+    // Start tracking data
+    InitializeTracker(context);
 
-        if (TrackerTimeout === undefined) {
-            StartTracker(context);
-        }
-    }
 }
 
 export default {
@@ -121,18 +128,23 @@ export default {
                 currentMetric = 0;
             }
 
-            context.setItem("active_metric", AllowedMetricData[currentMetric]);
+            context.setProp("active_metric", AllowedMetricData[currentMetric]);
 
             RenderActiveMetric(context);
         });
+
+        // Starting tracker. Keep in mind that starting a tracker in the
+        // RenderActiveMetric function is not enough because app can be reloaded at
+        // any time
+        StartTrackingInterval(context);
 
         RenderActiveMetric(context);
 
         display.addEventListener("change", function() {
             if (display.on) {
-                StartTracker(context);
+                InitializeTracker(context);
             } else {
-                StopTracker(context);
+                StopTrackingInterval(context);
             }
         });
     }

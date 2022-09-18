@@ -5,35 +5,48 @@ import Buzzer from './buzzer';
 // Reference to the number of reminders triggered today
 const reminders = document.getElementById("reminders");
 
-let CheckInterval = null;
+// Order of reminder statuses
+const Statuses = [
+    "on",   // Reminder is on when user is awake
+    "off",  // Reminder if off no matter what
+    "zzz"   // Reminder is on when user is either awake or asleep
+]
+
+let CheckInterval;
 
 function StartReminder(context) {
-    CheckInterval = setInterval(function() {
-        const now    = new Date();
-        const hour   = now.getHours();
-        const minute = now.getMinutes();
-        const comp   = hour * 60 + minute;
-        const time   = now.getTime() - (now.getTime() % 60000);
+    if (CheckInterval === undefined) {
+        CheckInterval = setInterval(function() {
+            const now    = new Date();
+            const hour   = now.getHours();
+            const minute = now.getMinutes();
+            const comp   = hour * 60 + minute;
+            const time   = now.getTime() - (now.getTime() % 60000);
 
-        if (hour === 5 && minute === 0) {
-            context.setItem("reminderCount", 0);
-        }
+            if (hour === 5 && minute === 0) {
+                context.setProp("reminderCount", 0);
+            }
 
-        if (sleep.state === "awake" || context.settings.fullday_reminder) {
-            if (comp % context.settings.reminder_frequency === 0) {
-                if (context.getItem("lastReminder") !== time) {
-                    Buzzer[context.settings.reminder_behavior]();
+            if (sleep.state === "awake"
+                    || context.getProp("reminder_status") === "zzz"
+            ) {
+                if (comp % context.getSetting("reminder_frequency") === 0) {
+                    if (context.getProp("lastReminder") !== time) {
+                        Buzzer[context.getSetting("reminder_behavior")]();
 
-                    context.incrementItem("reminderCount");
-                    context.setItem("lastReminder", time);
+                        context.incrementProp("reminderCount");
+                        context.setProp("lastReminder", time);
+                    }
                 }
             }
-        }
-    }, 10000)
+        }, 10000);
+    }
 }
 
 function StopReminder() {
-    CheckInterval = clearInterval(CheckInterval);
+    if (CheckInterval !== undefined) {
+        CheckInterval = clearInterval(CheckInterval);
+    }
 }
 
 function UpdateReminderCounter(iconId, count) {
@@ -50,7 +63,7 @@ function UpdateReminderCounter(iconId, count) {
 }
 
 function RenderReminderCounter(context) {
-    const status = context.getItem("pause_reminder", false);
+    const status = context.getProp("reminder_status", Statuses[0]);
 
     // Let's hide all the icons first
     document.getElementsByClassName("reminder-icon").forEach((icon) => {
@@ -58,32 +71,20 @@ function RenderReminderCounter(context) {
     });
 
     // Let's display the active icon
-    if (status) {
-        document.getElementById("reminder-off").style.display = "inline";
+    document.getElementById(`reminder-${status}`).style.display = "inline";
+
+    if (status === "off") {
         UpdateReminderCounter("reminder-off", "--");
     } else {
-        document.getElementById("reminder-on").style.display = "inline";
         UpdateReminderCounter(
-            "reminder-on",
-            context.getItem("reminderCount", 0).toString()
+            `reminder-${status}`,
+            context.getProp("reminderCount", 0).toString()
         );
     }
 }
 
 export default {
     setup: (context) => {
-        StartReminder(context);
-
-        // Set the initial reminder counter
-        const lastReminder = context.getItem("lastReminder", null);
-
-        // Either the app starts first time or last reminder was more than a day ago
-        if (lastReminder === null || ((new Date).getTime() - lastReminder > 86400000)) {
-            context.setItem("reminderCount", 0);
-        }
-
-        RenderReminderCounter(context);
-
         // Register settings change listener
         context.addEventListener("settings_updated", () => {
             StopReminder(); // Clearing current check interval
@@ -91,38 +92,67 @@ export default {
             // Registering new check interval based on new settings
             StartReminder(context);
 
-            // Resetting the goal counter
-            context.setItem("reminderCount", 0);
+            // Resetting the reminder counter
+            context.setProp("reminderCount", 0);
+
+            // Reset the reminder status back to on
+            context.setProp("reminder_status", "on");
         });
 
         // Register data change listener
-        context.addEventListener("data_updated", (event) => {
+        context.addEventListener("prop_updated", (event) => {
             if (event.data.name === "reminderCount") {
                 UpdateReminderCounter("reminder-on", event.data.value.toString());
-            } else if (event.data.name === "pause_reminder") {
-                if (event.data.value) {
+            } else if (event.data.name === "reminder_status") {
+                if (event.data.value === "off") {
                     StopReminder(); // Clearing current check interval
                 } else {
                     StartReminder(context);
                 }
+
+                RenderReminderCounter(context);
             }
         });
 
-        // Listen for the goal completion event
-        context.addEventListener("goal_completed", () => {
-            StopReminder(); // Clearing current check interval
+        // Register an individual setting update
+        context.addEventListener("setting_updated", (event) => {
+            if (event.data.name === "focus_status"
+                    && event.data.value === "inactive"
+            ) {
+                StopReminder(); // Clearing current check interval
+            }
         });
 
-        // Turn on/off reminder
-        const container = document.getElementById("reminder-container");
+        if (context.getSetting("focus_status") === "active") {
+            StartReminder(context);
 
-        container.addEventListener("click", () => {
-            const status = !context.getItem("pause_reminder", false);
+            // Set the initial reminder counter
+            const lastReminder = context.getProp("lastReminder", null);
 
-            context.setItem("pause_reminder", status);
+            // Either the app starts first time or last reminder was more than a day ago
+            if (lastReminder === null || ((new Date).getTime() - lastReminder > 86400000)) {
+                context.setProp("reminderCount", 0);
+            }
+
+            // Turn on/off reminder
+            const container = document.getElementById("reminder-container");
+
+            container.addEventListener("click", () => {
+                const currentStatus = context.getProp("reminder_status", Statuses[0]);
+                const index         = Statuses.indexOf(currentStatus);
+
+                if (index + 1 < Statuses.length) {
+                    context.getProp("reminder_status", Statuses[index + 1]);
+                } else {
+                    context.getProp("reminder_status", Statuses[0]);
+                }
+
+                RenderReminderCounter(context);
+            });
 
             RenderReminderCounter(context);
-        });
-
+        } else {
+            context.setProp("reminder_status", "off");
+        }
     }
 }

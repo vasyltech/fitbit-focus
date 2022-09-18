@@ -7,17 +7,17 @@ const base     = document.getElementById("progress-base");
 function AdjustProgress(context) {
     // Calculate the size
     const now      = new Date();
-    const start    = context.settings.start;
-    const duration = context.settings.duration;
+    const start    = context.getSetting("start");
+    const duration = context.getSetting("duration");
     const size     = (now.getTime() - start) / (duration * 86400000);
 
     if (size < 1) {
-        progress.x2         = base.getBBox().width * size;
+        progress.x2 = base.getBBox().width * size;
     } else {
         progress.x2 = base.getBBox().width;
 
         // Notifying the other components that the goal has been accomplished
-        context.dispatchEvent({type: "goal_completed"});
+        context.setSetting("focus_status", "inactive");
     }
 }
 

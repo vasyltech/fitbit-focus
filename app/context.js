@@ -1,21 +1,23 @@
 import * as fs from "fs";
 
-const SETTINGS_FILENAME = "settings.json";
-const APP_DATA_FILENAME = "data.json";
-const DEFAULT_DURATION = 30;
-const DEFAULT_REMINDER_BEHAVIOR = "trinity";
-const DEFAULT_REMINDER_FREQUENCY = 60;
+// Collection of default values for the app to work out-of-box
+const SETTINGS_FILENAME          = "settings.json"; // ClockFace settings
+const APP_DATA_FILENAME          = "data.json";     // ClockFace running properties
+const DEFAULT_DURATION           = 30;              // Focus duration in days
+const DEFAULT_FOCUS_STATUS       = "active";        // Current focus status
+const DEFAULT_REMINDER_BEHAVIOR  = "trinity";       // Reminder behavior
+const DEFAULT_REMINDER_FREQUENCY = 60;              // Reminder frequency in minutes
 
 class Context extends EventTarget {
 
-    get settings() {
-        return this._settings;
-    }
-
     /**
+     * Context construct
      *
+     * Reading data from the local file storage and instantiate the context
      */
-    setup() {
+    constructor() {
+        super();
+
         // Getting app settings first
         if (fs.existsSync(SETTINGS_FILENAME)) {
             this.setSettings(fs.readFileSync(SETTINGS_FILENAME, "json"));
@@ -41,20 +43,34 @@ class Context extends EventTarget {
     setSettings(settings = null) {
         this._settings = {
             start: settings.start ?? (new Date()).getTime(),
+            focus_status: settings.focus_status ?? DEFAULT_FOCUS_STATUS,
             duration: settings.duration ?? DEFAULT_DURATION,
-            fullday_reminder: settings.fullday_reminder ?? false,
             reminder_behavior: settings.reminder_behavior ?? DEFAULT_REMINDER_BEHAVIOR,
-            reminder_frequency: settings.reminder_frequency ?? DEFAULT_REMINDER_FREQUENCY,
-        }
+            reminder_frequency: settings.reminder_frequency ?? DEFAULT_REMINDER_FREQUENCY
+        };
 
         // Persisting settings
         fs.writeFileSync(SETTINGS_FILENAME, this._settings, "json");
 
-        // Letting all listeners to know that settings have been updated
-        this.dispatchEvent({type: "settings_updated"});
+        // Letting all listeners know that settings have been updated
+        this.dispatchEvent({ type: "settings_updated" });
     }
 
-    setItem(name, value) {
+    setSetting(name, value) {
+        this._settings[name] = value;
+
+        // Persisting settings
+        fs.writeFileSync(SETTINGS_FILENAME, this._settings, "json");
+
+        // Letting all listeners know that a specific setting has been updated
+        this.dispatchEvent({ type: "setting_updated", data: { name, value } });
+    }
+
+    getSetting(name, def = undefined) {
+        return this._settings[name] ?? def;
+    }
+
+    setProp(name, value) {
         this._data[name] = value;
 
         // Persisting data
@@ -62,7 +78,7 @@ class Context extends EventTarget {
 
         // Emit event
         this.dispatchEvent({
-            type: "data_updated",
+            type: "prop_updated",
             data: {
                 name,
                 value
@@ -72,23 +88,15 @@ class Context extends EventTarget {
         return value;
     }
 
-    getItem(name, def = undefined) {
+    getProp(name, def = undefined) {
         return this._data[name] ?? def;
     }
 
-    incrementItem(name) {
-        this._data[name] = this.getItem(name, 0) + 1;
-
-        return this._data[name];
+    incrementProp(name) {
+        return this.setProp(name, this.getProp(name, 0) + 1);
     }
 
-    setAppearance(name, value) {
-        this.setItem(name, value);
-    }
 }
 
 // Initializing a single instance of the context
-const ContextInstance = new Context();
-ContextInstance.setup();
-
-export default ContextInstance;
+export default new Context();

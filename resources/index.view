@@ -24,6 +24,7 @@
     <svg pointer-events="visible" id="reminder-container">
       <image class="reminder-icon theme-color" id="reminder-on" href="images/reminder.png" />
       <image class="reminder-icon theme-color" id="reminder-off" href="images/reminder-off.png" />
+      <image class="reminder-icon theme-color" id="reminder-zzz" href="images/reminder-zzz.png" />
       <text id="reminders" font-family="System-Regular" text-length="3" font-size="24" fill="fb-light-gray" x="50%+64" y="24">0</text>
     </svg>
 
