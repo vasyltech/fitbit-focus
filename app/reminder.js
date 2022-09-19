@@ -74,7 +74,10 @@ function RenderReminderCounter(context) {
     document.getElementById(`reminder-${status}`).style.display = "inline";
 
     if (status === "off") {
-        UpdateReminderCounter("reminder-off", "--");
+        UpdateReminderCounter(
+            "reminder-off",
+            context.getSetting("focus_status") === "active" ? "--" : "END"
+        );
     } else {
         UpdateReminderCounter(
             `reminder-${status}`,
@@ -120,6 +123,7 @@ export default {
                     && event.data.value === "inactive"
             ) {
                 StopReminder(); // Clearing current check interval
+                context.setProp("reminder_status", "off");
             }
         });
 
@@ -142,9 +146,9 @@ export default {
                 const index         = Statuses.indexOf(currentStatus);
 
                 if (index + 1 < Statuses.length) {
-                    context.getProp("reminder_status", Statuses[index + 1]);
+                    context.setProp("reminder_status", Statuses[index + 1]);
                 } else {
-                    context.getProp("reminder_status", Statuses[0]);
+                    context.setProp("reminder_status", Statuses[0]);
                 }
 
                 RenderReminderCounter(context);
