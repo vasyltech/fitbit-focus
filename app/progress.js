@@ -9,7 +9,7 @@ function AdjustProgress(context) {
     const now      = new Date();
     const start    = context.getSetting("start");
     const duration = context.getSetting("duration");
-    const size     = (now.getTime() + 86400000 - start) / (duration * 86400000);
+    const size     = (now.getTime() - start) / (duration * 86400000);
 
     if (size < 1) {
         progress.x2 = base.getBBox().width * size;

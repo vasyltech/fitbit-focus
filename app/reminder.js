@@ -142,16 +142,18 @@ export default {
             const container = document.getElementById("reminder-container");
 
             container.addEventListener("click", () => {
-                const currentStatus = context.getProp("reminder_status", Statuses[0]);
-                const index         = Statuses.indexOf(currentStatus);
+                if (context.getSetting("focus_status") === "active") {
+                    const currentStatus = context.getProp("reminder_status", Statuses[0]);
+                    const index         = Statuses.indexOf(currentStatus);
 
-                if (index + 1 < Statuses.length) {
-                    context.setProp("reminder_status", Statuses[index + 1]);
-                } else {
-                    context.setProp("reminder_status", Statuses[0]);
+                    if (index + 1 < Statuses.length) {
+                        context.setProp("reminder_status", Statuses[index + 1]);
+                    } else {
+                        context.setProp("reminder_status", Statuses[0]);
+                    }
+
+                    RenderReminderCounter(context);
                 }
-
-                RenderReminderCounter(context);
             });
 
             RenderReminderCounter(context);
