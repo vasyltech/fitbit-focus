@@ -1,5 +1,7 @@
 const DefaultSettings = {
-  duration: "30",
+  duration: JSON.stringify({
+    name: 30
+  }),
   color: JSON.stringify("5080831"),
   reminder_frequency: JSON.stringify({
     values: [
@@ -31,6 +33,10 @@ function InitializeSettings(props) {
       props.settingsStorage.setItem(setting, DefaultSettings[setting]);
     }
   }
+}
+
+function SubmitGoal(props) {
+  props.settingsStorage.setItem('set', (new Date()).getTime().toString());
 }
 
 registerSettingsPage((props) => {
@@ -76,11 +82,10 @@ registerSettingsPage((props) => {
           </Text>
         }
       >
-        <Slider
-          label={`Focus Duration: ${props.settings.duration} day${props.settings.duration === '1' ? '' : 's'}`}
+        <TextInput
+          label="Focus Duration (days)"
           settingsKey="duration"
-          min="1"
-          max="365"
+          type="number"
         />
 
         <Select
@@ -112,8 +117,15 @@ registerSettingsPage((props) => {
 
       <Button
         label="Set The Goal"
-        onClick={() => props.settingsStorage.setItem('set', (new Date).getTime().toString())}
+        onClick={ () => SubmitGoal(props) }
       />
+
+      {
+        props.settingsStorage.getItem("is_error") === "1" ?
+          <Text align="left">There was an error communicating with your device. Please make sure that your device is connected with the phone and try again. If no luck, as a possible solution, try to restart the Fitbit app.</Text>
+          :
+          null
+      }
     </Page>
   );
 });

@@ -2,12 +2,20 @@ import { settingsStorage } from "settings";
 import * as messaging from "messaging";
 
 function SendMessage(data) {
-    // If we have a MessageSocket, send the data to the device
-    if (messaging.peerSocket.readyState === messaging.peerSocket.OPEN) {
-        messaging.peerSocket.send(data);
-    } else {
-        console.log("No peerSocket connection");
+    let result = true;
+
+    try {
+        // If we have a MessageSocket, send the data to the device
+        if (messaging.peerSocket.readyState === messaging.peerSocket.OPEN) {
+            messaging.peerSocket.send(data);
+        } else {
+            result = false;
+        }
+    } catch (error) {
+        result = false;
     }
+
+    return result;
 }
 
 function GetSelectedValue(name) {
@@ -16,10 +24,12 @@ function GetSelectedValue(name) {
 
 // Event fires when a setting is changed
 settingsStorage.addEventListener("change", (event) => {
-    if (event.key === 'set') { // Set the new goal
-        SendMessage({
-            type: 'set_focus',
-            duration: parseInt(settingsStorage.getItem("duration"), 10),
+    let result;
+
+    if (event.key === "set") { // Set the new goal
+        result = SendMessage({
+            type: "set_focus",
+            duration: parseInt(JSON.parse(settingsStorage.getItem("duration")).name, 10),
             reminder_behavior: GetSelectedValue("reminder_behavior"),
             reminder_frequency: parseInt(GetSelectedValue("reminder_frequency"), 10)
         });
@@ -35,11 +45,15 @@ settingsStorage.addEventListener("change", (event) => {
         }
 
         if (value !== undefined) { // Ignore sending message if value not set
-            SendMessage({
+            result = SendMessage({
                 type: 'setting_updated',
                 setting: event.key,
                 value
             });
+        } else {
+            result = true; // Ignoring
         }
     }
+
+    settingsStorage.setItem("is_error", result === true ? "0" : "1");
 });
