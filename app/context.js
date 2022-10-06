@@ -7,6 +7,7 @@ const DEFAULT_DURATION           = 30;              // Focus duration in days
 const DEFAULT_FOCUS_STATUS       = "active";        // Current focus status
 const DEFAULT_REMINDER_BEHAVIOR  = "trinity";       // Reminder behavior
 const DEFAULT_REMINDER_FREQUENCY = 60;              // Reminder frequency in minutes
+const DEFAULT_COLOR              = 5080831;         // Interface color thema
 
 class Context extends EventTarget {
 
@@ -45,6 +46,7 @@ class Context extends EventTarget {
             start: settings.start ?? (new Date()).getTime(),
             focus_status: settings.focus_status ?? DEFAULT_FOCUS_STATUS,
             duration: settings.duration ?? DEFAULT_DURATION,
+            color: settings.color ?? DEFAULT_COLOR,
             reminder_behavior: settings.reminder_behavior ?? DEFAULT_REMINDER_BEHAVIOR,
             reminder_frequency: settings.reminder_frequency ?? DEFAULT_REMINDER_FREQUENCY
         };

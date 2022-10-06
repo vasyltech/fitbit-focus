@@ -16,6 +16,6 @@ export default {
         });
 
         // Set the default color
-        UpdateColor(context.getProp("color", 5080831));
+        UpdateColor(context.getSetting("color", 5080831));
     }
 }

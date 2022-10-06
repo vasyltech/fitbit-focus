@@ -9,7 +9,8 @@ const reminders = document.getElementById("reminders");
 const Statuses = [
     "on",   // Reminder is on when user is awake
     "off",  // Reminder if off no matter what
-    "zzz"   // Reminder is on when user is either awake or asleep
+    "zzz",  // Reminder is on when user is either awake or asleep
+    "done"  // Number of completed days
 ]
 
 let CheckInterval;
@@ -78,6 +79,10 @@ function RenderReminderCounter(context) {
             "reminder-off",
             context.getSetting("focus_status") === "active" ? "--" : "END"
         );
+    } else if (status === "done") {
+        const start     = context.getSetting("start");
+        const now       = new Date();
+        reminders.text  = Math.floor((now.getTime() - start) / 86400000).toString();
     } else {
         UpdateReminderCounter(
             `reminder-${status}`,
