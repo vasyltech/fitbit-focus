@@ -42,6 +42,7 @@
   text-length: 5;
   fill: fb-light-gray;
   text-anchor: start;
+  display: "none";
   y: 24;
 }
 

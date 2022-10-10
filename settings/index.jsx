@@ -11,7 +11,7 @@ const DefaultSettings = {
       }
     ],
     selected: [
-      0
+      3
     ]
   }),
   reminder_behavior: JSON.stringify({

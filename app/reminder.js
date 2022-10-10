@@ -1,3 +1,4 @@
+import { me } from "appbit";
 import document from "document";
 import sleep from "sleep";
 import Buzzer from './buzzer';
@@ -5,13 +6,33 @@ import Buzzer from './buzzer';
 // Reference to the number of reminders triggered today
 const reminders = document.getElementById("reminders");
 
-// Order of reminder statuses
-const Statuses = [
-    "on",   // Reminder is on when user is awake
-    "off",  // Reminder if off no matter what
-    "zzz",  // Reminder is on when user is either awake or asleep
-    "done"  // Number of completed days
-]
+// Preparing the list of statuses that can be displayed
+function GetStatusList() {
+    const response = [
+        "on", // Reminder is on when user is awake
+        "off" // Reminder if off no matter what
+    ];
+
+    if (me.permissions.granted("access_sleep")) {
+        response.push("zzz"); // Reminder is on when user is either awake or asleep
+    }
+
+    response.push("done"); // Number of completed days
+
+    return response;
+}
+
+function IsReminderOn(context, currentHour) {
+    let response = false;
+
+    if (sleep) { // Clockface has access to the Sleep API
+        response = sleep.state === "awake";
+    } else { // Otherwise do reminder between 7am and 9pm
+        response = currentHour >= 7 && currentHour <= 21
+    }
+
+   return response || context.getProp("reminder_status") === "zzz";
+}
 
 let CheckInterval;
 
@@ -28,9 +49,7 @@ function StartReminder(context) {
                 context.setProp("reminderCount", 0);
             }
 
-            if (sleep.state === "awake"
-                    || context.getProp("reminder_status") === "zzz"
-            ) {
+            if (IsReminderOn(context, hour)) {
                 if (comp % context.getSetting("reminder_frequency") === 0) {
                     if (context.getProp("lastReminder") !== time) {
                         Buzzer[context.getSetting("reminder_behavior")]();
@@ -64,7 +83,7 @@ function UpdateReminderCounter(iconId, count) {
 }
 
 function RenderReminderCounter(context) {
-    const status = context.getProp("reminder_status", Statuses[0]);
+    const status = context.getProp("reminder_status", GetStatusList()[0]);
 
     // Let's hide all the icons first
     document.getElementsByClassName("reminder-icon").forEach((icon) => {
@@ -80,9 +99,15 @@ function RenderReminderCounter(context) {
             context.getSetting("focus_status") === "active" ? "--" : "END"
         );
     } else if (status === "done") {
-        const start     = context.getSetting("start");
-        const now       = new Date();
-        reminders.text  = Math.floor((now.getTime() - start) / 86400000).toString();
+        const start = context.getSetting("start");
+        const now   = new Date();
+        let done    = Math.floor((now.getTime() - start) / 86400000);
+
+        if (done > context.getSetting('duration')) {
+            done = context.getSetting('duration');
+        }
+
+        UpdateReminderCounter("reminder-done", done.toString());
     } else {
         UpdateReminderCounter(
             `reminder-${status}`,
@@ -147,14 +172,16 @@ export default {
             const container = document.getElementById("reminder-container");
 
             container.addEventListener("click", () => {
-                if (context.getSetting("focus_status") === "active") {
-                    const currentStatus = context.getProp("reminder_status", Statuses[0]);
-                    const index         = Statuses.indexOf(currentStatus);
+                const statuses = GetStatusList();
 
-                    if (index + 1 < Statuses.length) {
-                        context.setProp("reminder_status", Statuses[index + 1]);
+                if (context.getSetting("focus_status") === "active") {
+                    const currentStatus = context.getProp("reminder_status", statuses[0]);
+                    const index         = statuses.indexOf(currentStatus);
+
+                    if (index + 1 < statuses.length) {
+                        context.setProp("reminder_status", statuses[index + 1]);
                     } else {
-                        context.setProp("reminder_status", Statuses[0]);
+                        context.setProp("reminder_status", statuses[0]);
                     }
 
                     RenderReminderCounter(context);
